@@ -8,7 +8,7 @@ import java.awt.*;
 
 /**
  * Panel for managing users in the LabTrack UM system.
- * Provides functionality to list, add, edit, and delete users.
+ * Provides functionality to list, add, edit, and deactivate users.
  */
 public class UserManagementPanel extends JPanel {
 
@@ -295,9 +295,9 @@ public class UserManagementPanel extends JPanel {
         updateButton.setToolTipText("Update selected user");
         updateButton.addActionListener(e -> updateUser());
         
-        deleteButton = createStyledButton("Delete", new Color(231, 76, 60));
-        deleteButton.setToolTipText("Delete selected user");
-        deleteButton.addActionListener(e -> deleteUser());
+        deleteButton = createStyledButton("Deactivate", new Color(231, 76, 60));
+        deleteButton.setToolTipText("Deactivate selected user (they cannot log in; history is kept)");
+        deleteButton.addActionListener(e -> deactivateSelectedUser());
         
         refreshButton = createStyledButton("Refresh", new Color(149, 165, 166));
         refreshButton.setToolTipText("Reload user list");
@@ -796,28 +796,31 @@ public class UserManagementPanel extends JPanel {
         });
     }
 
-    private void deleteUser() {
+    private void deactivateSelectedUser() {
         if (selectedUserId == null) {
-            JOptionPane.showMessageDialog(this, "Please select a user to delete", "No Selection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a user to deactivate", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this user?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Deactivate this user? They will not be able to log in. Check-in/out history is kept.",
+            "Confirm deactivate",
+            JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
         SwingUtilities.invokeLater(() -> {
             try {
-                statusLabel.setText("Deleting user...");
+                statusLabel.setText("Deactivating user...");
                 statusLabel.setForeground(new Color(52, 152, 219));
                 ApiClient.delete("/users/" + selectedUserId);
                 clearForm();
                 loadUsers();
-                statusLabel.setText("User deleted successfully");
+                statusLabel.setText("User deactivated successfully");
                 statusLabel.setForeground(new Color(39, 174, 96));
             } catch (Exception e) {
                 statusLabel.setText("Error: " + e.getMessage());
                 statusLabel.setForeground(new Color(231, 76, 60));
-                JOptionPane.showMessageDialog(this, "Error deleting user: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error deactivating user: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }

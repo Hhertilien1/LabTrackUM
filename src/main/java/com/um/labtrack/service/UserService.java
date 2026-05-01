@@ -1,7 +1,6 @@
 package com.um.labtrack.service;
 
 import com.um.labtrack.entity.User;
-import com.um.labtrack.repository.TransactionRepository;
 import com.um.labtrack.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,23 +32,19 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final TransactionRepository transactionRepository;
     private final AuthService authService;
     private final PasswordEncoder passwordEncoder;
 
     /**
      * Constructor-based dependency injection.
      *
-     * @param userRepository          The repository for User data access
-     * @param transactionRepository  The repository for Transaction data (to remove user's transactions before delete)
-     * @param authService             The authentication service for role checks
-     * @param passwordEncoder         Password encoder for hashing passwords
+     * @param userRepository   The repository for User data access
+     * @param authService      The authentication service for role checks
+     * @param passwordEncoder  Password encoder for hashing passwords
      */
     @Autowired
-    public UserService(UserRepository userRepository, TransactionRepository transactionRepository,
-                       AuthService authService, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, AuthService authService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.transactionRepository = transactionRepository;
         this.authService = authService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -195,41 +190,6 @@ public class UserService {
         }
         
         return userRepository.save(existingUser);
-    }
-
-    /**
-     * Delete a user by ID.
-     * ADMIN can delete any user except themselves (to prevent lockout).
-     *
-     * @param id The user ID to delete
-     * @throws IllegalArgumentException if user not found
-     * @throws IllegalStateException if trying to delete own ADMIN account
-     */
-    public void deleteUser(Long id) {
-        if (!authService.isAuthenticated()) {
-            throw new IllegalStateException("User must be authenticated to delete users");
-        }
-
-        User currentUser = authService.getCurrentUser();
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
-        
-        // ADMIN can delete any user, but cannot delete themselves
-        if (currentUser.getRole() == User.UserRole.ADMIN) {
-            if (user.getId().equals(currentUser.getId())) {
-                throw new IllegalStateException("ADMIN cannot delete their own account");
-            }
-            // ADMIN can delete anyone else, including other ADMINS
-        } else {
-            // Non-ADMIN users cannot delete ADMIN users
-            if (user.getRole() == User.UserRole.ADMIN) {
-                throw new IllegalArgumentException("Only ADMIN can delete ADMIN users");
-            }
-        }
-
-        // Delete all transactions referencing this user first to avoid foreign key constraint
-        transactionRepository.deleteByUserId(id);
-        userRepository.deleteById(id);
     }
 
     /**

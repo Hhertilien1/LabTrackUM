@@ -106,6 +106,7 @@ public class AuthController {
             response.put("authenticated", true);
             response.put("user", userDTO);
             response.put("role", user.getRole().toString());
+            response.put("canManageLocationsAndEquipment", authService.canManageLocationsAndEquipment());
         } else {
             response.put("authenticated", false);
         }

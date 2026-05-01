@@ -46,6 +46,23 @@ public class ApiClient {
     }
 
     /**
+     * Whether the current session may create or modify locations and equipment (Admin, Teacher, or TA).
+     *
+     * @return true if allowed; false if not authenticated, on error, or for plain students
+     */
+    public static boolean fetchCanManageLocationsAndEquipment() {
+        try {
+            String r = get("/auth/session");
+            if (!r.contains("\"authenticated\":true")) {
+                return false;
+            }
+            return r.contains("\"canManageLocationsAndEquipment\":true");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
      * Makes an HTTP GET request.
      *
      * @param endpoint The API endpoint (e.g., "/users")

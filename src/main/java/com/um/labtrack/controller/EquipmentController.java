@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * REST Controller for Equipment management operations.
@@ -44,6 +45,18 @@ public class EquipmentController {
         return null;
     }
 
+    private ResponseEntity<?> requireManageLocationsAndEquipment() {
+        ResponseEntity<?> authCheck = checkAuth();
+        if (authCheck != null) return authCheck;
+        if (!authService.canManageLocationsAndEquipment()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Forbidden");
+            error.put("message", "Only Administrators, Teachers, and Teaching Assistants can create, update, or delete equipment.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+        return null;
+    }
+
     /**
      * Get all equipment.
      *
@@ -72,10 +85,11 @@ public class EquipmentController {
      * @return ResponseEntity containing the equipment if found, 404 otherwise
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Equipment> getEquipmentById(@PathVariable Long id) {
-        return equipmentService.getEquipmentById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getEquipmentById(@PathVariable Long id) {
+        ResponseEntity<?> authCheck = checkAuth();
+        if (authCheck != null) return authCheck;
+        Optional<Equipment> equipment = equipmentService.getEquipmentById(id);
+        return equipment.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -86,7 +100,7 @@ public class EquipmentController {
      */
     @PostMapping
     public ResponseEntity<?> createEquipment(@RequestBody Equipment equipment) {
-        ResponseEntity<?> authCheck = checkAuth();
+        ResponseEntity<?> authCheck = requireManageLocationsAndEquipment();
         if (authCheck != null) return authCheck;
         try {
             Equipment createdEquipment = equipmentService.createEquipment(equipment);
@@ -105,7 +119,7 @@ public class EquipmentController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateEquipment(@PathVariable Long id, @RequestBody Equipment equipment) {
-        ResponseEntity<?> authCheck = checkAuth();
+        ResponseEntity<?> authCheck = requireManageLocationsAndEquipment();
         if (authCheck != null) return authCheck;
         try {
             Equipment updatedEquipment = equipmentService.updateEquipment(id, equipment);
@@ -123,7 +137,7 @@ public class EquipmentController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEquipment(@PathVariable Long id) {
-        ResponseEntity<?> authCheck = checkAuth();
+        ResponseEntity<?> authCheck = requireManageLocationsAndEquipment();
         if (authCheck != null) return authCheck;
         try {
             equipmentService.deleteEquipment(id);

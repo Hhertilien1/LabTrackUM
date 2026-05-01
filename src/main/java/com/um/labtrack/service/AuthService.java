@@ -141,6 +141,16 @@ public class AuthService {
     }
 
     /**
+     * Whether the current user may create or modify locations and lab equipment.
+     * Allowed: ADMIN, TEACHER, or STUDENT with the TA flag. Plain students are not allowed.
+     *
+     * @return true if the user may manage locations and equipment metadata
+     */
+    public boolean canManageLocationsAndEquipment() {
+        return isAdmin() || isTeacher() || isTA();
+    }
+
+    /**
      * Sets the current session by username.
      * Used by filters/interceptors to set session from HTTP header.
      *

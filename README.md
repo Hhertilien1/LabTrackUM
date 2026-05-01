@@ -22,8 +22,6 @@ labtrack-um/
 │   │   │       │   └── UserService.java              # Sample service layer
 │   │   │       └── ui/
 │   │   │           └── MainFrame.java                # Swing UI main window
-│   │   │       └── docs/
-│   │   │           └──                               # Documents created during creation
 │   │   └── resources/
 │   │       └── application.properties                # Spring Boot configuration
 │   └── test/
@@ -35,7 +33,7 @@ labtrack-um/
 ## Technology Stack
 
 - **Backend:** Spring Boot 3.2.0
-- **Database:** MySQL
+- **Database:** H2 (In-Memory, can be switched to MySQL/PostgreSQL)
 - **Frontend:** Java Swing
 - **Build Tool:** Maven
 - **Java Version:** 17
@@ -48,29 +46,25 @@ labtrack-um/
 ## Setup Instructions
 
 1. **Clone or navigate to the project directory:**
-
    ```bash
    cd /path/to/labtrack-um
    ```
 
 2. **Build the project:**
-
    ```bash
    mvn clean install
    ```
 
 3. **Run the application:**
-
    ```bash
    mvn spring-boot:run
    ```
-
+   
    Or run the `ApplicationLauncher` class directly from your IDE.
 
 ## Running the Application
 
 The application will:
-
 1. Start the Spring Boot backend server on `http://localhost:8080`
 2. Automatically launch the Swing UI window once the server is ready
 
@@ -78,12 +72,22 @@ The application will:
 
 - **GET** `/api/hello` - Test endpoint that returns a JSON greeting message
 
+### H2 Database Console
+
+- Access the H2 console at: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:labtrackdb`
+- Username: `sa`
+- Password: (leave empty)
+
 ## Features
 
 ### Current Implementation
 
 - ✅ Spring Boot REST API backend
+- ✅ H2 in-memory database with JPA
 - ✅ Sample User entity, repository, and service
+- ✅ Swing UI with backend integration
+- ✅ Automatic UI launch after backend startup
 
 ### Future Development
 
@@ -94,8 +98,6 @@ The application will:
 - [ ] User authentication and authorization
 - [ ] Search and filter capabilities
 - [ ] Reporting and analytics
-- [ ] Swing UI with backend integration
-- [ ] Automatic UI launch after backend startup
 
 ## Development Guidelines
 
@@ -107,19 +109,25 @@ The application will:
 - `com.um.labtrack.service` - Business logic services
 - `com.um.labtrack.ui` - Swing UI components
 
+### Best Practices
+
+- Follow the existing package structure for new components
+- Use dependency injection via constructor injection
+- Add proper JavaDoc comments for all public classes and methods
+- Keep business logic in service layer, not in controllers
+- Use transactions for database operations
+
 ## Configuration
 
 Edit `src/main/resources/application.properties` to:
-
 - Change server port
-- database MySQL
+- Switch database (from H2 to MySQL/PostgreSQL)
 - Configure logging levels
 - Adjust JPA settings
 
 ## Testing
 
 Run tests with:
-
 ```bash
 mvn test
 ```
@@ -127,13 +135,11 @@ mvn test
 ## Building for Production
 
 Create an executable JAR:
-
 ```bash
 mvn clean package
 ```
 
 Run the JAR:
-
 ```bash
 java -jar target/labtrack-um-1.0.0.jar
 ```

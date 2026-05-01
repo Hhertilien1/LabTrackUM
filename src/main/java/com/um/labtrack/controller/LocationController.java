@@ -44,6 +44,18 @@ public class LocationController {
         return null;
     }
 
+    private ResponseEntity<?> requireManageLocationsAndEquipment() {
+        ResponseEntity<?> authCheck = checkAuth();
+        if (authCheck != null) return authCheck;
+        if (!authService.canManageLocationsAndEquipment()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Forbidden");
+            error.put("message", "Only Administrators, Teachers, and Teaching Assistants can create or modify locations.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+        return null;
+    }
+
     /**
      * Get all locations.
      *
@@ -65,7 +77,7 @@ public class LocationController {
      */
     @PostMapping
     public ResponseEntity<?> createLocation(@RequestBody Location location) {
-        ResponseEntity<?> authCheck = checkAuth();
+        ResponseEntity<?> authCheck = requireManageLocationsAndEquipment();
         if (authCheck != null) return authCheck;
         Location createdLocation = locationService.createLocation(location);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdLocation);

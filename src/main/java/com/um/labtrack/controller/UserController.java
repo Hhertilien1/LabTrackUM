@@ -152,20 +152,34 @@ public class UserController {
     }
 
     /**
-     * Delete a user by ID.
-     * ADMIN users cannot be deleted.
+     * Deactivates a user (sets active to false). Transaction history is preserved.
+     * Same rules as {@link #deactivateUser(Long)}; kept as DELETE for API compatibility.
      *
-     * @param id User ID to delete
-     * @return ResponseEntity with no content if successful
+     * @param id User ID to deactivate
+     * @return ResponseEntity with updated user DTO
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         ResponseEntity<?> authCheck = checkAuthentication();
         if (authCheck != null) return authCheck;
         try {
-            userService.deleteUser(id);
-            return ResponseEntity.noContent().build();
+            User u = userService.deactivateUser(id);
+            UserDTO userDTO = new UserDTO(
+                u.getId(),
+                u.getUsername(),
+                u.getFullName(),
+                u.getEmail(),
+                u.getRole(),
+                u.getActive(),
+                u.getIsTA(),
+                u.getCreatedAt() != null ? u.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null
+            );
+            return ResponseEntity.ok(userDTO);
         } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (IllegalStateException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(error);
@@ -197,6 +211,10 @@ public class UserController {
             );
             return ResponseEntity.ok(userDTO);
         } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (IllegalStateException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(error);

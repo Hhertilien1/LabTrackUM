@@ -41,7 +41,11 @@ public class EquipmentManagementPanel extends JPanel {
     private JButton searchButton;
     private java.util.List<Object[]> allEquipmentData;
 
+    /** Admin, Teacher, or TA may add/update/delete equipment; plain students may only view and use check-in/out if permitted by role. */
+    private boolean canManageLocationsAndEquipment;
+
     public EquipmentManagementPanel() {
+        canManageLocationsAndEquipment = ApiClient.fetchCanManageLocationsAndEquipment();
         initializeUI();
         loadLocations();
         loadUsers();
@@ -272,9 +276,14 @@ public class EquipmentManagementPanel extends JPanel {
         assignToStudentLabel.setVisible(hasEquipment);
         userCombo.setVisible(hasEquipment);
 
-        addButton.setEnabled(!hasEquipment);
-        updateButton.setEnabled(hasEquipment);
-        deleteButton.setEnabled(hasEquipment);
+        boolean manage = canManageLocationsAndEquipment;
+        addButton.setEnabled(!hasEquipment && manage);
+        updateButton.setEnabled(hasEquipment && manage);
+        deleteButton.setEnabled(hasEquipment && manage);
+        itemNumberField.setEditable(manage);
+        nameField.setEditable(manage);
+        conditionCombo.setEnabled(manage);
+        locationCombo.setEnabled(manage);
         checkoutButton.setEnabled(hasEquipment && hasUser && isAvailable);
         checkinButton.setEnabled(hasEquipment && isCheckedOut);
         viewEquipmentHistoryButton.setEnabled(hasEquipment);
@@ -469,6 +478,8 @@ public class EquipmentManagementPanel extends JPanel {
      * Called automatically when the panel is selected.
      */
     public void refresh() {
+        canManageLocationsAndEquipment = ApiClient.fetchCanManageLocationsAndEquipment();
+        updateButtonStates();
         loadEquipment();
         loadLocations();
         loadUsers();

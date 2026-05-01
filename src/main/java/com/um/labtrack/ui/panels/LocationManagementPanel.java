@@ -18,10 +18,13 @@ public class LocationManagementPanel extends JPanel {
     private JTextField roomField;
     private JTextField cabinetField;
     private JButton addButton;
+    private JButton clearButton;
     private JButton refreshButton;
     private JLabel statusLabel;
+    private boolean canManageLocationsAndEquipment;
 
     public LocationManagementPanel() {
+        canManageLocationsAndEquipment = ApiClient.fetchCanManageLocationsAndEquipment();
         initializeUI();
         loadLocations();
     }
@@ -87,7 +90,7 @@ public class LocationManagementPanel extends JPanel {
         addButton.setToolTipText("Add new location");
         addButton.addActionListener(e -> addLocation());
         
-        JButton clearButton = createStyledButton("Clear", new Color(149, 165, 166));
+        clearButton = createStyledButton("Clear", new Color(149, 165, 166));
         clearButton.setToolTipText("Clear all form fields");
         clearButton.addActionListener(e -> {
             buildingField.setText("");
@@ -119,6 +122,20 @@ public class LocationManagementPanel extends JPanel {
         // Layout
         add(scrollPane, BorderLayout.CENTER);
         add(formPanel, BorderLayout.SOUTH);
+
+        applyLocationFormState();
+    }
+
+    private void applyLocationFormState() {
+        addButton.setEnabled(canManageLocationsAndEquipment);
+        clearButton.setEnabled(canManageLocationsAndEquipment);
+        buildingField.setEditable(canManageLocationsAndEquipment);
+        roomField.setEditable(canManageLocationsAndEquipment);
+        cabinetField.setEditable(canManageLocationsAndEquipment);
+        if (!canManageLocationsAndEquipment) {
+            statusLabel.setText("View only: only Admin, Teacher, or TA can add locations.");
+            statusLabel.setForeground(new Color(142, 68, 173));
+        }
     }
 
     private void loadLocations() {
@@ -128,8 +145,13 @@ public class LocationManagementPanel extends JPanel {
                 statusLabel.setForeground(Color.BLUE);
                 String response = ApiClient.get("/locations");
                 updateTable(response);
-                statusLabel.setText("");
-                statusLabel.setForeground(Color.GREEN);
+                if (!canManageLocationsAndEquipment) {
+                    statusLabel.setText("View only: only Admin, Teacher, or TA can add locations.");
+                    statusLabel.setForeground(new Color(142, 68, 173));
+                } else {
+                    statusLabel.setText("");
+                    statusLabel.setForeground(Color.GREEN);
+                }
             } catch (Exception e) {
                 statusLabel.setText("Error: " + e.getMessage());
                 statusLabel.setForeground(Color.RED);
@@ -143,6 +165,8 @@ public class LocationManagementPanel extends JPanel {
      * Called automatically when the panel is selected.
      */
     public void refresh() {
+        canManageLocationsAndEquipment = ApiClient.fetchCanManageLocationsAndEquipment();
+        applyLocationFormState();
         loadLocations();
     }
 

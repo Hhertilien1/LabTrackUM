@@ -2,9 +2,6 @@ package com.um.labtrack.repository;
 
 import com.um.labtrack.entity.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -39,13 +36,4 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
      * @return List of transactions with the specified action
      */
     List<Transaction> findByActionOrderByTimestampDesc(Transaction.TransactionAction action);
-
-    /**
-     * Delete all transactions for a given user (e.g. before deleting the user).
-     *
-     * @param userId The user ID
-     */
-    @Modifying(clearAutomatically = true)
-    @Query("DELETE FROM Transaction t WHERE t.user.id = :userId")
-    void deleteByUserId(@Param("userId") Long userId);
 }
